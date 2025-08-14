@@ -21,19 +21,106 @@ Item {
     property bool showCrosshair: false
     property real mouseX: 0
     property real mouseY: 0
+    // 缩放和滚动相关属性
+    property real zoomFactor: 1
+    property real minZoom: 0.1
+    property real maxZoom: 10
+    property int startIndex: 0
+    property int visibleCount: 50
+    property int maxVisibleCount: 200
+    // 拖拽相关属性
+    property bool isDragging: false
+    property real lastMouseX: 0
 
     // 将函数移到root级别以便MouseArea访问
     function getKLineIndexFromX(x) {
-        if (klineData.length === 0)
+        if (getVisibleData().length === 0)
             return -1;
 
         var chartX = x - leftMargin;
         if (chartX < 0 || chartX > chartWidth)
             return -1;
 
-        var candleSpacing = chartWidth / klineData.length;
+        var visibleData = getVisibleData();
+        var candleSpacing = chartWidth / visibleData.length;
         var index = Math.floor(chartX / candleSpacing);
-        return Math.max(0, Math.min(index, klineData.length - 1));
+        var actualIndex = startIndex + Math.max(0, Math.min(index, visibleData.length - 1));
+        return Math.max(0, Math.min(actualIndex, klineData.length - 1));
+    }
+
+    function getVisibleData() {
+        if (klineData.length === 0)
+            return [];
+
+        var endIndex = Math.min(startIndex + visibleCount, klineData.length);
+        return klineData.slice(startIndex, endIndex);
+    }
+
+    function zoomIn(centerX) {
+        var oldZoom = zoomFactor;
+        zoomFactor = Math.min(maxZoom, zoomFactor * 1.2);
+        if (zoomFactor !== oldZoom) {
+            updateVisibleCount();
+            adjustScrollPosition(centerX, oldZoom);
+            canvas.requestPaint();
+        }
+    }
+
+    function zoomOut(centerX) {
+        var oldZoom = zoomFactor;
+        zoomFactor = Math.max(minZoom, zoomFactor / 1.2);
+        if (zoomFactor !== oldZoom) {
+            updateVisibleCount();
+            adjustScrollPosition(centerX, oldZoom);
+            canvas.requestPaint();
+        }
+    }
+
+    function updateVisibleCount() {
+        visibleCount = Math.min(maxVisibleCount, Math.max(10, Math.floor(50 / zoomFactor)));
+    }
+
+    function adjustScrollPosition(centerX, oldZoom) {
+        if (klineData.length === 0)
+            return ;
+
+        // 计算缩放中心点对应的数据索引
+        var relativeX = (centerX - leftMargin) / chartWidth;
+        var centerIndex = startIndex + relativeX * (50 / oldZoom);
+        // 调整startIndex使得缩放中心保持相对位置
+        var newCenterIndex = startIndex + relativeX * visibleCount;
+        var offset = centerIndex - newCenterIndex;
+        startIndex = Math.max(0, Math.min(startIndex + Math.floor(offset), klineData.length - visibleCount));
+    }
+
+    function scrollLeft() {
+        startIndex = Math.max(0, startIndex - Math.max(1, Math.floor(visibleCount * 0.1)));
+        canvas.requestPaint();
+    }
+
+    function scrollRight() {
+        startIndex = Math.min(klineData.length - visibleCount, startIndex + Math.max(1, Math.floor(visibleCount * 0.1)));
+        canvas.requestPaint();
+    }
+
+    function updatePriceRange() {
+        var visibleData = getVisibleData();
+        if (visibleData.length === 0)
+            return ;
+
+        minPrice = Number.MAX_VALUE;
+        maxPrice = Number.MIN_VALUE;
+        for (var i = 0; i < visibleData.length; i++) {
+            var kline = visibleData[i];
+            minPrice = Math.min(minPrice, kline.low);
+            maxPrice = Math.max(maxPrice, kline.high);
+        }
+        // 添加一些边距
+        var range = maxPrice - minPrice;
+        if (range > 0) {
+            minPrice -= range * 0.1;
+            maxPrice += range * 0.1;
+        }
     }
 
     Component.onCompleted: {
@@ -60,9 +147,13 @@ Item {
                 ctx.strokeStyle = "#444444";
                 ctx.lineWidth = 1;
                 ctx.setLineDash([2, 2]);
+                var visibleData = root.getVisibleData();
+                if (visibleData.length === 0)
+                    return ;
+
                 // 垂直网格线
-                var xStep = root.chartWidth / Math.max(1, root.klineData.length - 1);
-                for (var i = 0; i <= root.klineData.length; i++) {
+                var xStep = root.chartWidth / Math.max(1, visibleData.length - 1);
+                for (var i = 0; i <= visibleData.length; i++) {
                     var x = root.leftMargin + i * xStep;
                     ctx.beginPath();
                     ctx.moveTo(x, root.topMargin);
@@ -82,13 +173,14 @@ Item {
             }
 
             function drawKLines(ctx) {
-                if (root.klineData.length === 0)
+                var visibleData = root.getVisibleData();
+                if (visibleData.length === 0)
                     return ;
 
-                var candleWidth = root.chartWidth / root.klineData.length * 0.6;
-                var candleSpacing = root.chartWidth / root.klineData.length;
-                for (var i = 0; i < root.klineData.length; i++) {
-                    var kline = root.klineData[i];
+                var candleWidth = root.chartWidth / visibleData.length * 0.6;
+                var candleSpacing = root.chartWidth / visibleData.length;
+                for (var i = 0; i < visibleData.length; i++) {
+                    var kline = visibleData[i];
                     var x = root.leftMargin + i * candleSpacing + candleSpacing * 0.2;
                     // 转换价格到像素坐标
                     var highY = priceToY(kline.high);
@@ -133,16 +225,17 @@ Item {
                     var y = root.topMargin + root.chartHeight - i * (root.chartHeight / priceSteps);
                     ctx.fillText(price.toFixed(2), 5, y + 4);
                 }
-                // X轴标签（时间）- 根据K线数量自动调整显示间隔
-                if (root.klineData.length > 0) {
+                // X轴标签（时间）- 根据可见K线数量自动调整显示间隔
+                var visibleData = root.getVisibleData();
+                if (visibleData.length > 0) {
                     var maxLabels = 8; // 最多显示8个时间标签
-                    var step = Math.max(1, Math.ceil(root.klineData.length / maxLabels));
+                    var step = Math.max(1, Math.ceil(visibleData.length / maxLabels));
                     var previousDate = "";
-                    for (var j = 0; j < root.klineData.length; j += step) {
-                        var currentDate = getDateFromTime(root.klineData[j].time);
+                    for (var j = 0; j < visibleData.length; j += step) {
+                        var currentDate = getDateFromTime(visibleData[j].time);
                         var showDate = (currentDate !== previousDate); // 日期变化时显示日期
-                        var x = root.leftMargin + j * (root.chartWidth / root.klineData.length) + (root.chartWidth / root.klineData.length) / 2;
-                        var timeStr = formatTime(root.klineData[j].time, showDate);
+                        var x = root.leftMargin + j * (root.chartWidth / visibleData.length) + (root.chartWidth / visibleData.length) / 2;
+                        var timeStr = formatTime(visibleData[j].time, showDate);
                         // 调整文字位置，避免重叠
                         ctx.save();
                         ctx.translate(x, height - 5);
@@ -159,12 +252,12 @@ Item {
                         previousDate = currentDate;
                     }
                     // 如果最后一个标签没有显示，显示最后一个时间点
-                    var lastIndex = root.klineData.length - 1;
+                    var lastIndex = visibleData.length - 1;
                     if (lastIndex % step !== 0) {
-                        var lastDate = getDateFromTime(root.klineData[lastIndex].time);
+                        var lastDate = getDateFromTime(visibleData[lastIndex].time);
                         var showLastDate = (lastDate !== previousDate);
-                        var lastX = root.leftMargin + lastIndex * (root.chartWidth / root.klineData.length) + (root.chartWidth / root.klineData.length) / 2;
-                        var lastTimeStr = formatTime(root.klineData[lastIndex].time, showLastDate);
+                        var lastX = root.leftMargin + lastIndex * (root.chartWidth / visibleData.length) + (root.chartWidth / visibleData.length) / 2;
+                        var lastTimeStr = formatTime(visibleData[lastIndex].time, showLastDate);
                         ctx.save();
                         ctx.translate(lastX, height - 5);
                         ctx.rotate(-Math.PI / 6);
@@ -241,6 +334,8 @@ Item {
                 if (root.klineData.length === 0)
                     return ;
 
+                // 根据可见数据重新计算价格范围
+                root.updatePriceRange();
                 drawBackground(ctx);
                 drawGrid(ctx);
                 drawKLines(ctx);
@@ -251,17 +346,49 @@ Item {
             MouseArea {
                 anchors.fill: parent
                 hoverEnabled: true
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
                 onPositionChanged: function(mouse) {
                     root.mouseX = mouse.x;
                     root.mouseY = mouse.y;
+                    // 处理拖拽滚动
+                    if (root.isDragging && (mouse.buttons & Qt.LeftButton)) {
+                        var deltaX = mouse.x - root.lastMouseX;
+                        var moveRatio = deltaX / root.chartWidth;
+                        var moveCount = Math.floor(moveRatio * root.visibleCount);
+                        if (Math.abs(moveCount) >= 1) {
+                            root.startIndex = Math.max(0, Math.min(root.klineData.length - root.visibleCount, root.startIndex - moveCount));
+                            root.lastMouseX = mouse.x;
+                            canvas.requestPaint();
+                        }
+                    }
+                    // 更新悬浮信息
                     root.hoveredIndex = root.getKLineIndexFromX(mouse.x);
                     root.showCrosshair = (root.hoveredIndex >= 0);
                     canvas.requestPaint();
                 }
+                onPressed: function(mouse) {
+                    if (mouse.button === Qt.LeftButton) {
+                        root.isDragging = true;
+                        root.lastMouseX = mouse.x;
+                    }
+                }
+                onReleased: function(mouse) {
+                    if (mouse.button === Qt.LeftButton)
+                        root.isDragging = false;
+
+                }
                 onExited: function() {
                     root.showCrosshair = false;
                     root.hoveredIndex = -1;
+                    root.isDragging = false;
                     canvas.requestPaint();
+                }
+                onWheel: function(wheel) {
+                    var centerX = wheel.x;
+                    if (wheel.angleDelta.y > 0)
+                        root.zoomIn(centerX);
+                    else if (wheel.angleDelta.y < 0)
+                        root.zoomOut(centerX);
                 }
             }
 
@@ -352,12 +479,9 @@ Item {
 
         csvFile: root.csvFile
         onDataLoaded: {
-            console.log("Canvas K线图: 数据加载完成, 共", data.length);
+            console.log("Canvas K线图: 数据加载完成, 共", data.length, "条数据");
             var tempData = [];
-            var dataCount = data.length;
-            root.minPrice = Number.MAX_VALUE;
-            root.maxPrice = Number.MIN_VALUE;
-            for (var i = 0; i < dataCount; i++) {
+            for (var i = 0; i < data.length; i++) {
                 var row = data[i];
                 if (row.length >= 5) {
                     var kline = {
@@ -368,17 +492,15 @@ Item {
                         "close": parseFloat(row[4])
                     };
                     tempData.push(kline);
-                    root.minPrice = Math.min(root.minPrice, kline.low);
-                    root.maxPrice = Math.max(root.maxPrice, kline.high);
                 }
             }
-            // 添加一些边距
-            var range = root.maxPrice - root.minPrice;
-            root.minPrice -= range * 0.1;
-            root.maxPrice += range * 0.1;
             root.klineData = tempData;
-            console.log("Canvas K线图: 价格范围", root.minPrice.toFixed(2), "到", root.maxPrice.toFixed(2));
-            console.log("Canvas K线图: K线数量", root.klineData.length);
+            // 初始化显示参数
+            root.startIndex = Math.max(0, tempData.length - root.visibleCount);
+            root.updateVisibleCount();
+            root.updatePriceRange();
+            console.log("Canvas K线图: 总数据量", root.klineData.length, "条，可见数据量", root.visibleCount, "条");
+            console.log("Canvas K线图: 起始索引", root.startIndex, "价格范围", root.minPrice.toFixed(2), "到", root.maxPrice.toFixed(2));
             // 触发重绘
             canvas.requestPaint();
         }
