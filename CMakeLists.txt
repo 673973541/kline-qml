@@ -36,6 +36,11 @@ qt_add_qml_module(KLineChart
     QML_FILES
     qml/main.qml
     qml/components/charts/CanvasKLineChart.qml
+    qml/components/charts/ChartBase.qml
+    qml/components/charts/KLineCanvas.qml
+    qml/components/charts/ChartInteraction.qml
+    qml/components/charts/ChartTooltip.qml
+    qml/components/data/KLineDataLoader.qml
     RESOURCES
 )
 

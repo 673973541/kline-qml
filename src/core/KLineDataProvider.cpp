@@ -1,33 +1,26 @@
 #include "klinedataprovider.h"
-#include <QFile>
-#include <QTextStream>
-#include <QDebug>
-#include <QStandardPaths>
+
 #include <QCoreApplication>
+#include <QDebug>
 #include <QDir>
+#include <QFile>
+#include <QStandardPaths>
+#include <QTextStream>
 
-KLineDataProvider::KLineDataProvider(QObject *parent)
-    : QObject(parent)
-{
-}
+KLineDataProvider::KLineDataProvider(QObject *parent) : QObject(parent) {}
 
-QString KLineDataProvider::csvFile() const
-{
-    return m_csvFile;
-}
+QString KLineDataProvider::csvFile() const { return m_csvFile; }
 
 void KLineDataProvider::setCsvFile(const QString &csvFile)
 {
     if (m_csvFile != csvFile) {
+        qDebug() << "KLineDataProvider: CSV file changed to:" << csvFile;
         m_csvFile = csvFile;
         emit csvFileChanged();
     }
 }
 
-QVariantList KLineDataProvider::data() const
-{
-    return m_data;
-}
+QVariantList KLineDataProvider::data() const { return m_data; }
 
 void KLineDataProvider::loadData()
 {

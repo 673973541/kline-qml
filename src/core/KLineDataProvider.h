@@ -2,8 +2,8 @@
 #define KLINEDATAPROVIDER_H
 
 #include <QObject>
-#include <QVariantList>
 #include <QString>
+#include <QVariantList>
 
 class KLineDataProvider : public QObject
 {
@@ -33,4 +33,4 @@ private:
     QVariantList m_data;
 };
 
-#endif // KLINEDATAPROVIDER_H
+#endif  // KLINEDATAPROVIDER_H
