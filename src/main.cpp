@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
             QCoreApplication::exit(-1);
         },
         Qt::QueuedConnection);
-    const QUrl url(QStringLiteral("qrc:/qt/qml/kline/main.qml"));
+    const QUrl url(QStringLiteral("qrc:/qt/qml/KLineModule/qml/main.qml"));
     engine.load(url);
 
     qDebug() << "应用程序运行中...";

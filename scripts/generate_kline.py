@@ -17,7 +17,9 @@ def generate_kline_data(n, base_price=100, volatility=0.02):
     """
     klines = []
     # 使用今天的开始时间，避免未来时间
-    current_time = datetime.datetime.now().replace(hour=9, minute=30, second=0, microsecond=0)
+    current_time = datetime.datetime.now().replace(
+        hour=9, minute=30, second=0, microsecond=0
+    )
     current_price = base_price
 
     for i in range(n):
@@ -86,7 +88,6 @@ def print_klines(klines):
 
 
 if __name__ == "__main__":
-    # 生成10条K线数据
-    n = 10
+    n = 1000
     kline_data = generate_kline_data(n)
     save_to_csv(kline_data)
