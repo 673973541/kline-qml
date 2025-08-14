@@ -2,6 +2,7 @@
 # Qt/C++ Project .gitignore
 # ===========================================
 
+.vscode/
 # Build directories
 build/
 build*/

@@ -37,7 +37,6 @@ qt_add_qml_module(KLineChart
     qml/main.qml
     qml/components/charts/CanvasKLineChart.qml
     RESOURCES
-    resources/data/sample_kline.csv
 )
 
 # 设置目标属性
