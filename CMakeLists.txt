@@ -11,6 +11,7 @@ set(CMAKE_PREFIX_PATH "C:/Qt/6.8.3/mingw_64")
 # 查找Qt组件
 find_package(Qt6 6.5 REQUIRED COMPONENTS
     Quick
+    QuickControls2
     Qml
     Core
     Gui
@@ -55,6 +56,7 @@ set_target_properties(KLineChart PROPERTIES
 # 链接Qt库
 target_link_libraries(KLineChart PRIVATE
     Qt6::Quick
+    Qt6::QuickControls2
     Qt6::Qml
     Qt6::Core
     Qt6::Gui
@@ -83,13 +85,3 @@ add_custom_command(TARGET KLineChart POST_BUILD
     ${CMAKE_SOURCE_DIR}/resources/data/sample_kline.csv
     $<TARGET_FILE_DIR:KLineChart>/sample_kline.csv
 )
-
-# 打印项目信息
-message(STATUS "")
-message(STATUS "=== KLine Chart项目配置 ===")
-message(STATUS "项目名称: ${PROJECT_NAME}")
-message(STATUS "版本: ${PROJECT_VERSION}")
-message(STATUS "Qt版本: ${Qt6_VERSION}")
-message(STATUS "构建类型: ${CMAKE_BUILD_TYPE}")
-message(STATUS "安装目录: ${CMAKE_INSTALL_PREFIX}")
-message(STATUS "=========================")

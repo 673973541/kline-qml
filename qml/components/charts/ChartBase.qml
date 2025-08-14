@@ -30,7 +30,7 @@ Item {
     property int startIndex: 0
     property int visibleCount: 50
     property int baseVisibleCount: 50 // 基础可见数量
-    property int maxVisibleCount: 100 // 进一步降低最大可见数量
+    property int maxVisibleCount: 200 // 最大可见数量
     // 拖拽相关属性
     property bool isDragging: false
     property real lastMouseX: 0
@@ -90,7 +90,7 @@ Item {
         // 设置合理的边界，允许更小的可见数量
         var minCount = 5;
         // 降低最小值，允许看到更少的K线
-        var maxCount = Math.min(200, klineData.length);
+        var maxCount = Math.min(maxVisibleCount, klineData.length);
         // 大幅提高上限，支持更多K线
         visibleCount = Math.max(minCount, Math.min(maxCount, theoreticalCount));
     }
@@ -107,7 +107,7 @@ Item {
             oldTheoreticalCount = Math.floor(baseVisibleCount + (1 - oldZoom) * 150);
         else
             oldTheoreticalCount = Math.floor(baseVisibleCount / oldZoom);
-        var oldVisibleCount = Math.max(5, Math.min(200, oldTheoreticalCount));
+        var oldVisibleCount = Math.max(5, Math.min(maxVisibleCount, oldTheoreticalCount));
         // 计算缩放中心对应的数据索引
         var centerDataIndex = startIndex + relativeX * oldVisibleCount;
         // 调整startIndex使缩放中心保持相对位置

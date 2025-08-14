@@ -13,13 +13,6 @@ Item {
     signal dataLoaded(var data)
     signal dataError(string error)
 
-    // 公共方法
-    function loadData() {
-        if (csvFile)
-            dataProvider.loadData();
-
-    }
-
     // 数据提供器
     KLineDataProvider {
         id: dataProvider

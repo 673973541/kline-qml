@@ -3,6 +3,7 @@
 #include <QGuiApplication>
 #include <QLoggingCategory>
 #include <QQmlApplicationEngine>
+#include <QQuickStyle>
 #include <QStandardPaths>
 #include <QtQml>
 
@@ -11,6 +12,9 @@
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+
+    // 设置Qt Quick Controls样式为Basic，避免原生样式限制
+    QQuickStyle::setStyle("Basic");
 
     qDebug() << "K线图应用启动...";
 
