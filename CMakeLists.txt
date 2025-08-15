@@ -55,13 +55,30 @@ set_target_properties(KLineChart PROPERTIES
     # WIN32_EXECUTABLE TRUE  # 注释掉以启用控制台输出
 )
 
-# 链接Qt库
+# 设置Windows环境变量以兼容TA-Lib的CMakeLists.txt检查
+if(WIN32)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(ENV{Platform} "x64")
+    else()
+        set(ENV{Platform} "x86")
+    endif()
+endif()
+
+# 添加TA-Lib源码子项目
+add_subdirectory(thrid_party/ta_lib)
+
+# 设置TA-Lib头文件路径
+set(TALIB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thrid_party/ta_lib/include")
+include_directories(${TALIB_INCLUDE_DIR})
+
+# 链接Qt库和TA-Lib库
 target_link_libraries(KLineChart PRIVATE
     Qt6::Quick
     Qt6::QuickControls2
     Qt6::Qml
     Qt6::Core
     Qt6::Gui
+    ta-lib-static # 链接TA-Lib静态库
 )
 
 # 设置包含目录

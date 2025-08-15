@@ -57,7 +57,6 @@ ApplicationWindow {
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                 }
-
             }
 
             Text {
@@ -66,9 +65,7 @@ ApplicationWindow {
                 color: "#d8dee9"
                 font.pixelSize: 14
             }
-
         }
-
     }
 
     // K线图表
@@ -105,5 +102,4 @@ ApplicationWindow {
             console.log("取消选择文件");
         }
     }
-
 }

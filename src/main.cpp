@@ -1,3 +1,5 @@
+#include <ta_libc.h>
+
 #include <QDebug>
 #include <QDir>
 #include <QGuiApplication>
@@ -11,6 +13,14 @@
 
 int main(int argc, char *argv[])
 {
+    // 初始化TA-Lib
+    TA_RetCode taInitResult = TA_Initialize();
+    if (taInitResult != TA_SUCCESS) {
+        qDebug() << "TA-Lib初始化失败，错误码:" << taInitResult;
+        return -1;
+    }
+    qDebug() << "TA-Lib初始化成功";
+
     QGuiApplication app(argc, argv);
 
     // 设置Qt Quick Controls样式为Basic，避免原生样式限制
@@ -33,5 +43,12 @@ int main(int argc, char *argv[])
     engine.load(url);
 
     qDebug() << "应用程序运行中...";
-    return app.exec();
+
+    int result = app.exec();
+
+    // 关闭TA-Lib
+    TA_Shutdown();
+    qDebug() << "TA-Lib已关闭";
+
+    return result;
 }
