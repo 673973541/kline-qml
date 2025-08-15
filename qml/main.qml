@@ -36,6 +36,7 @@ ApplicationWindow {
             spacing: 10
 
             Button {
+                id: fileButton
                 text: "选择CSV文件"
                 height: 40
                 onClicked: {
@@ -44,14 +45,14 @@ ApplicationWindow {
                 }
 
                 background: Rectangle {
-                    color: parent.pressed ? "#5e81ac" : "#4c566a"
+                    color: fileButton.pressed ? "#5e81ac" : "#4c566a"
                     radius: 6
                     border.color: "#81a1c1"
                     border.width: 1
                 }
 
                 contentItem: Text {
-                    text: parent.text
+                    text: fileButton.text
                     color: "#eceff4"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter

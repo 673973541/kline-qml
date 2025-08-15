@@ -97,7 +97,7 @@ Canvas {
         for (var i = 0; i <= priceSteps; i++) {
             var price = chartBase.minPrice + (chartBase.maxPrice - chartBase.minPrice) * i / priceSteps;
             var y = chartBase.topMargin + chartBase.chartHeight - i * (chartBase.chartHeight / priceSteps);
-            ctx.fillText(price.toFixed(2), 5, y + 4);
+            ctx.fillText(Number(price).toFixed(2), 5, y + 4);
         }
         // X轴标签（时间）
         var visibleData = chartBase.getVisibleData();

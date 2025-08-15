@@ -5,6 +5,8 @@ project(KLineChart VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 
+set(QT_QML_GENERATE_QMLLS_INI ON)
+
 # Qt路径设置
 set(CMAKE_PREFIX_PATH "C:/Qt/6.8.3/mingw_64")
 
@@ -79,9 +81,3 @@ install(TARGETS KLineChart
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-# 复制数据文件到构建目录
-add_custom_command(TARGET KLineChart POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${CMAKE_SOURCE_DIR}/resources/data/sample_kline.csv
-    $<TARGET_FILE_DIR:KLineChart>/sample_kline.csv
-)

@@ -3,6 +3,7 @@
 # ===========================================
 
 .vscode
+.qmlls.ini
 # Build directories
 build/
 build*/
