@@ -88,6 +88,6 @@ def print_klines(klines):
 
 
 if __name__ == "__main__":
-    n = 1000
+    n = 10000
     kline_data = generate_kline_data(n)
     save_to_csv(kline_data)

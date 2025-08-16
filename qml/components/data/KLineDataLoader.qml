@@ -6,8 +6,10 @@ Item {
 
     // 输入属性
     property string csvFile: ""
+    property string klinePeriod: "1m"  // 默认1分钟周期
     // 输出属性
     property var klineData: []
+    property bool isLoading: dataProvider.isLoading
 
     // 信号
     signal dataLoaded(var data)
@@ -20,9 +22,9 @@ Item {
         onCsvFileChanged: {
             if (csvFile)
                 loadData();
-
         }
         csvFile: root.csvFile
+        klinePeriod: root.klinePeriod
         onDataLoaded: {
             var tempData = [];
             for (var i = 0; i < data.length; i++) {
@@ -42,5 +44,4 @@ Item {
             root.dataLoaded(tempData);
         }
     }
-
 }

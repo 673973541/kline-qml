@@ -18,6 +18,7 @@ ApplicationWindow {
     // 数据加载器
     KLineDataLoader {
         id: dataLoader
+        klinePeriod: periodComboBox.getCurrentValue()
     }
 
     // 顶部工具栏
@@ -43,20 +44,6 @@ ApplicationWindow {
                     console.log("打开文件选择对话框");
                     fileDialog.open();
                 }
-
-                background: Rectangle {
-                    color: fileButton.pressed ? "#5e81ac" : "#4c566a"
-                    radius: 6
-                    border.color: "#81a1c1"
-                    border.width: 1
-                }
-
-                contentItem: Text {
-                    text: fileButton.text
-                    color: "#eceff4"
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
             }
 
             Text {
@@ -64,6 +51,79 @@ ApplicationWindow {
                 text: dataLoader.csvFile ? "当前文件: " + dataLoader.csvFile : "未选择文件"
                 color: "#d8dee9"
                 font.pixelSize: 14
+            }
+
+            // K线周期选择
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "周期:"
+                color: "#d8dee9"
+                font.pixelSize: 14
+            }
+
+            ComboBox {
+                id: periodComboBox
+                width: 120
+                height: 40
+
+                property var periodData: [
+                    {
+                        text: "1分钟",
+                        value: "1m"
+                    },
+                    {
+                        text: "5分钟",
+                        value: "5m"
+                    },
+                    {
+                        text: "15分钟",
+                        value: "15m"
+                    },
+                    {
+                        text: "30分钟",
+                        value: "30m"
+                    },
+                    {
+                        text: "1小时",
+                        value: "1h"
+                    },
+                    {
+                        text: "4小时",
+                        value: "4h"
+                    },
+                    {
+                        text: "1天",
+                        value: "1d"
+                    }
+                ]
+
+                function getCurrentValue() {
+                    return periodData[currentIndex].value;
+                }
+
+                model: periodData
+                textRole: "text"
+                currentIndex: 0  // 默认选择1分钟
+
+                onCurrentIndexChanged: {
+                    console.log("周期切换到:", getCurrentValue());
+                }
+            }
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "当前周期: " + periodComboBox.periodData[periodComboBox.currentIndex].text
+                color: "#d8dee9"
+                font.pixelSize: 14
+            }
+
+            // 加载指示器
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: dataLoader.isLoading ? "数据处理中..." : ""
+                color: "#88c0d0"
+                font.pixelSize: 14
+                visible: dataLoader.isLoading
             }
         }
     }
